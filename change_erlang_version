@@ -2,7 +2,7 @@
 unset -f change-erlang-version
 function change-erlang-version() {
   case "$1" in
-    "20"|"20.3"|"21"|"21.3"|"22"|"22.3|23|23.0" )
+    "20"|"20.3"|"21"|"21.3"|"22"|"22.3"|"23"|"23.0" )
         . /home/semaphore/.kerl/installs/$1/activate
     ;;
     * )
