@@ -83,13 +83,14 @@ echo "REGISTRY_ENDPOINT"        | tee -a $LOGS_PATH
 echo "------------------"       | tee -a $LOGS_PATH
 
 REGISTRY_ENDPOINT=$(echo $IMAGE_NAME | cut -d'/' -f1)
-echo "REGISTRY_ENDPOINT ${REGISTRY_ENDPOINT}"     | tee -a $LOGS_PATH
+echo "REGISTRY_ENDPOINT ${REGISTRY_ENDPOINT}" | tee -a $LOGS_PATH
 
 echo "------------------"       | tee -a $LOGS_PATH
 echo "ORGANIZATION NAME"        | tee -a $LOGS_PATH
 echo "------------------"       | tee -a $LOGS_PATH
 
-echo "ORGANIZATION_NAME ${SEMAPHORE_ORGANIZATION_URL}" | sed 's|https://||g' | cut -d'.' -f1 | awk '{ print $1 }'
+ORGANIZATION_NAME=$(echo $SEMAPHORE_ORGANIZATION_URL | sed 's|https://||g' | cut -d'.' -f1)
+echo "ORGANIZATION_NAME ${ORGANIZATION_NAME}" | tee -a $LOGS_PATH
 
 echo "------------------"       | tee -a $LOGS_PATH
 echo "PROJECT ID"               | tee -a $LOGS_PATH
@@ -101,7 +102,15 @@ echo "------------------"       | tee -a $LOGS_PATH
 echo "JOB NAME"                 | tee -a $LOGS_PATH
 echo "------------------"       | tee -a $LOGS_PATH
 
-echo "JOB_NAME ${SEMAPHORE_JOB_NAME}"    | sed 's| |-|g' | tee -a $LOGS_PATH
+JOB_NAME=$(echo $SEMAPHORE_JOB_NAME | sed 's| |-|g')
+echo "JOB_NAME ${JOB_NAME}" | tee -a $LOGS_PATH
+
+echo "------------------"       | tee -a $LOGS_PATH
+echo "BASE IMAGE NAME"               | tee -a $LOGS_PATH
+echo "------------------"       | tee -a $LOGS_PATH
+
+BASE_IMAGE_NAME=$(echo "${IMAGE_NAME}" | awk -F'/' '{ print $NF }' | awk -F':' '{ print $1 }')
+echo "BASE_IMAGE_NAME ${BASE_IMAGE_NAME}" | tee -a $LOGS_PATH
 
 #
 # Save them as an artifact on the project level and leave them in /tmp/docker_debug_logs.txt for internal monitoring.
@@ -111,7 +120,7 @@ echo "JOB_NAME ${SEMAPHORE_JOB_NAME}"    | sed 's| |-|g' | tee -a $LOGS_PATH
 
 NAME="$(date +%F)---${SEMAPHORE_WORKFLOW_ID}---${PUSH_DURATION}seconds.txt"
 artifact push project $LOGS_PATH -d docker/$NAME
-cat $LOGS_PATH > /tmp/docker_debug_logs.txt
+cat $LOGS_PATH > /tmp/push_$(date +%s).txt
 
 #
 # Preserve the exit code from docker push.
