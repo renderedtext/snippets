@@ -76,20 +76,32 @@ echo "------------------"       | tee -a $LOGS_PATH
 echo "TOTAL DURATION    "       | tee -a $LOGS_PATH
 echo "------------------"       | tee -a $LOGS_PATH
 
-echo "${PUSH_DURATION} seconds" | tee -a $LOGS_PATH
+echo "PUSH_DURATION ${PUSH_DURATION}" | tee -a $LOGS_PATH
 
 echo "------------------"       | tee -a $LOGS_PATH
 echo "REGISTRY_ENDPOINT"        | tee -a $LOGS_PATH
 echo "------------------"       | tee -a $LOGS_PATH
 
 REGISTRY_ENDPOINT=$(echo $IMAGE_NAME | cut -d'/' -f1)
-echo "${REGISTRY_ENDPOINT}"     | tee -a $LOGS_PATH
+echo "REGISTRY_ENDPOINT ${REGISTRY_ENDPOINT}"     | tee -a $LOGS_PATH
 
 echo "------------------"       | tee -a $LOGS_PATH
-echo "PROJECT ID and JOB NAME"  | tee -a $LOGS_PATH
+echo "ORGANIZATION NAME"        | tee -a $LOGS_PATH
 echo "------------------"       | tee -a $LOGS_PATH
 
-echo "${SEMAPHORE_PROJECT_ID}-${SEMAPHORE_JOB_NAME}" | sed 's| |-|g' | tee -a $LOGS_PATH
+echo "ORGANIZATION_NAME ${SEMAPHORE_ORGANIZATION_URL}" | sed 's|https://||g' | cut -d'.' -f1 | awk '{ print $1 }'
+
+echo "------------------"       | tee -a $LOGS_PATH
+echo "PROJECT ID"               | tee -a $LOGS_PATH
+echo "------------------"       | tee -a $LOGS_PATH
+
+echo "PROJECT_ID ${SEMAPHORE_PROJECT_ID}"  | tee -a $LOGS_PATH
+
+echo "------------------"       | tee -a $LOGS_PATH
+echo "JOB NAME"                 | tee -a $LOGS_PATH
+echo "------------------"       | tee -a $LOGS_PATH
+
+echo "JOB_NAME ${SEMAPHORE_JOB_NAME}"    | sed 's| |-|g' | tee -a $LOGS_PATH
 
 #
 # Save them as an artifact on the project level and leave them in /tmp/docker_debug_logs.txt for internal monitoring.
