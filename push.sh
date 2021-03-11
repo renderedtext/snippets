@@ -28,7 +28,6 @@ echo "-------------------------------" | tee -a $LOGS_PATH
 echo "RESTARTING DOCKER IN DEBUG MODE" | tee -a $LOGS_PATH
 echo "-------------------------------" | tee -a $LOGS_PATH
 
-echo '{"debug": true,"max-concurrent-uploads": 1}' | sudo tee /etc/docker/daemon.json
 sudo kill -SIGHUP $(pidof dockerd)
 sudo truncate -s 0 /var/log/syslog
 
