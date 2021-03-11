@@ -20,6 +20,7 @@
 
 IMAGE_NAME=$1
 LOGS_PATH=$(mktemp)
+MTR_FILE=$(mktemp)
 
 #
 # Enable debug mode for docker push and limit uploads concurrency to 1, restart.
@@ -46,6 +47,10 @@ docker history $IMAGE_NAME | tee -a $LOGS_PATH
 echo "------------------" | tee -a $LOGS_PATH
 echo "DOCKER PUSH LOGS  " | tee -a $LOGS_PATH
 echo "------------------" | tee -a $LOGS_PATH
+
+# collect MTR logs while docker push is running
+mtr -s 1000 --report-wide -c 10 -U 60 -m 60  > $MTR_FILE &
+mtr_pid=$!
 
 # seconds is a magic bash variable that returns number of seconds since last usage
 SECONDS=0
@@ -126,6 +131,10 @@ echo "BASE_IMAGE_NAME ${BASE_IMAGE_NAME}" | tee -a $LOGS_PATH
 NAME="$(date +%F)---${SEMAPHORE_WORKFLOW_ID}---${PUSH_DURATION}seconds.txt"
 artifact push project $LOGS_PATH -d docker/$NAME
 cat $LOGS_PATH > /tmp/push_$(date +%s).txt
+
+# wait for mtr process to finish and push mtr log to artifact
+wait $mtr_pid
+artifact push job $MTR_FILE -d docker/mtr.log
 
 #
 # Preserve the exit code from docker push.
