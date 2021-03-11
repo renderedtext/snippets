@@ -99,6 +99,12 @@ echo "------------------"       | tee -a $LOGS_PATH
 echo "PROJECT_ID ${SEMAPHORE_PROJECT_ID}"  | tee -a $LOGS_PATH
 
 echo "------------------"       | tee -a $LOGS_PATH
+echo "JOB ID"                   | tee -a $LOGS_PATH
+echo "------------------"       | tee -a $LOGS_PATH
+
+echo "JOB_ID ${SEMAPHORE_JOB_ID}"  | tee -a $LOGS_PATH
+
+echo "------------------"       | tee -a $LOGS_PATH
 echo "JOB NAME"                 | tee -a $LOGS_PATH
 echo "------------------"       | tee -a $LOGS_PATH
 
