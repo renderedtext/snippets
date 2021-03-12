@@ -23,12 +23,13 @@ LOGS_PATH=$(mktemp)
 MTR_FILE=$(mktemp)
 
 #
-# Enable debug mode for docker push and limit uploads concurrency to 1, restart.
+# Enable debug mode for docker push, restart.
 #
 echo "-------------------------------" | tee -a $LOGS_PATH
 echo "RESTARTING DOCKER IN DEBUG MODE" | tee -a $LOGS_PATH
 echo "-------------------------------" | tee -a $LOGS_PATH
 
+echo '{"debug": true}' | sudo tee /etc/docker/daemon.json
 sudo kill -SIGHUP $(pidof dockerd)
 sudo truncate -s 0 /var/log/syslog
 
