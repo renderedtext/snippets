@@ -23,12 +23,13 @@ LOGS_PATH=$(mktemp)
 MTR_FILE=$(mktemp)
 
 #
-# Enable debug mode for docker push and limit uploads concurrency to 1, restart.
+# Enable debug mode for docker push, restart.
 #
 echo "-------------------------------" | tee -a $LOGS_PATH
 echo "RESTARTING DOCKER IN DEBUG MODE" | tee -a $LOGS_PATH
 echo "-------------------------------" | tee -a $LOGS_PATH
 
+echo '{"debug": true}' | sudo tee /etc/docker/daemon.json
 sudo kill -SIGHUP $(pidof dockerd)
 sudo truncate -s 0 /var/log/syslog
 
@@ -124,19 +125,14 @@ BASE_IMAGE_NAME=$(echo "${IMAGE_NAME}" | awk -F'/' '{ print $NF }' | awk -F':' '
 echo "BASE_IMAGE_NAME ${BASE_IMAGE_NAME}" | tee -a $LOGS_PATH
 
 #
-# Save them as an artifact on the project level and leave them in /tmp/docker_debug_logs.txt for internal monitoring.
+# Save them in /tmp/docker_debug_logs.txt for internal monitoring.
 #
-# visit: https://<org>.semaphoreci.com/artifacts/projects/<project>
-#
-
 NAME="$(date +%F)---${SEMAPHORE_WORKFLOW_ID}---${PUSH_DURATION}seconds.txt"
-artifact push project $LOGS_PATH -d docker/$NAME
-cat $LOGS_PATH > /tmp/push_$(date +%s).txt
+cat $LOGS_PATH > /tmp/push_$(date +%s)_${JOB_ID}.txt
 
-# wait for mtr process to finish and push mtr log to artifact
+# wait for mtr process to finish 
 wait $mtr_pid
-artifact push job $MTR_FILE -d docker/mtr.log
-
+cat $MTR_FILE > /tmp/mtr_$(date +%s)_${JOB_ID}.txt
 #
 # Preserve the exit code from docker push.
 #
