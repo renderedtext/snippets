@@ -48,8 +48,10 @@ echo "------------------" | tee -a $LOGS_PATH
 echo "DOCKER PUSH LOGS  " | tee -a $LOGS_PATH
 echo "------------------" | tee -a $LOGS_PATH
 
+REGISTRY_ENDPOINT=$(echo $IMAGE_NAME | cut -d'/' -f1)
+
 # collect MTR logs while docker push is running
-mtr -s 1000 --report-wide -c 10 -U 60 -m 60  > $MTR_FILE &
+mtr -s 1000 --report-wide -c 10 -U 60 -m 60 $REGISTRY_ENDPOINT > $MTR_FILE &
 mtr_pid=$!
 
 # seconds is a magic bash variable that returns number of seconds since last usage
@@ -86,7 +88,6 @@ echo "------------------"       | tee -a $LOGS_PATH
 echo "REGISTRY_ENDPOINT"        | tee -a $LOGS_PATH
 echo "------------------"       | tee -a $LOGS_PATH
 
-REGISTRY_ENDPOINT=$(echo $IMAGE_NAME | cut -d'/' -f1)
 echo "REGISTRY_ENDPOINT ${REGISTRY_ENDPOINT}" | tee -a $LOGS_PATH
 
 echo "------------------"       | tee -a $LOGS_PATH
