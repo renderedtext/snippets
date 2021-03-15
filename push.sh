@@ -25,11 +25,11 @@ MTR_FILE=$(mktemp)
 #
 # Enable debug mode for docker push, restart.
 #
-echo "-------------------------------" | tee -a $LOGS_PATH
-echo "RESTARTING DOCKER IN DEBUG MODE" | tee -a $LOGS_PATH
-echo "-------------------------------" | tee -a $LOGS_PATH
+echo "-------------------------------" >> $LOGS_PATH
+echo "RESTARTING DOCKER IN DEBUG MODE" >> $LOGS_PATH
+echo "-------------------------------" >> $LOGS_PATH
 
-echo '{"debug": true}' | sudo tee /etc/docker/daemon.json
+echo '{"debug": true}' | sudo tee /etc/docker/daemon.json > /dev/null
 sudo kill -SIGHUP $(pidof dockerd)
 sudo truncate -s 0 /var/log/syslog
 
@@ -37,22 +37,22 @@ sudo truncate -s 0 /var/log/syslog
 # Log docker layers.
 #
 
-echo "------------------"  | tee -a $LOGS_PATH
-echo "DOCKER LAYERS     "  | tee -a $LOGS_PATH
-echo "------------------"  | tee -a $LOGS_PATH
-docker history $IMAGE_NAME | tee -a $LOGS_PATH
+echo "------------------"  >> $LOGS_PATH
+echo "DOCKER LAYERS     "  >> $LOGS_PATH
+echo "------------------"  >> $LOGS_PATH
+docker history $IMAGE_NAME >> $LOGS_PATH
 
 #
 # Run docker push.
 #
-echo "------------------" | tee -a $LOGS_PATH
-echo "DOCKER PUSH LOGS  " | tee -a $LOGS_PATH
-echo "------------------" | tee -a $LOGS_PATH
+echo "------------------" >> $LOGS_PATH
+echo "DOCKER PUSH LOGS  " >> $LOGS_PATH
+echo "------------------" >> $LOGS_PATH
 
 REGISTRY_ENDPOINT=$(echo $IMAGE_NAME | cut -d'/' -f1)
 
 # collect MTR logs while docker push is running
-mtr -s 1000 --report-wide -c 10 -U 60 -m 60 $REGISTRY_ENDPOINT > $MTR_FILE &
+mtr -s 1000 --report-wide -c 10 -U 60 -m 60 $REGISTRY_ENDPOINT &> $MTR_FILE &
 mtr_pid=$!
 
 # seconds is a magic bash variable that returns number of seconds since last usage
@@ -67,9 +67,9 @@ PUSH_DURATION=$SECONDS
 # Collect logs
 #
 
-echo "------------------" | tee -a $LOGS_PATH
-echo "DOCKER DEAMON LOGS" | tee -a $LOGS_PATH
-echo "------------------" | tee -a $LOGS_PATH
+echo "------------------" >> $LOGS_PATH
+echo "DOCKER DEAMON LOGS" >> $LOGS_PATH
+echo "------------------" >> $LOGS_PATH
 
 sudo cat /var/log/syslog          \
   | grep "dockerd"                \
@@ -77,60 +77,64 @@ sudo cat /var/log/syslog          \
   | sed 's/level=debug msg="//g'  \
   | sed "s/\"$(date +%F)T//"      \
   | sed 's/Z"//g'                 \
-  | tee -a $LOGS_PATH
+  >> $LOGS_PATH
 
-echo "------------------"       | tee -a $LOGS_PATH
-echo "TOTAL DURATION    "       | tee -a $LOGS_PATH
-echo "------------------"       | tee -a $LOGS_PATH
+echo "------------------"       >> $LOGS_PATH
+echo "TOTAL DURATION    "       >> $LOGS_PATH
+echo "------------------"       >> $LOGS_PATH
 
-echo "PUSH_DURATION ${PUSH_DURATION}" | tee -a $LOGS_PATH
+echo "PUSH_DURATION ${PUSH_DURATION}" >> $LOGS_PATH
 
-echo "------------------"       | tee -a $LOGS_PATH
-echo "REGISTRY_ENDPOINT"        | tee -a $LOGS_PATH
-echo "------------------"       | tee -a $LOGS_PATH
+echo "------------------"       >> $LOGS_PATH
+echo "REGISTRY_ENDPOINT"        >> $LOGS_PATH
+echo "------------------"       >> $LOGS_PATH
 
-echo "REGISTRY_ENDPOINT ${REGISTRY_ENDPOINT}" | tee -a $LOGS_PATH
+echo "REGISTRY_ENDPOINT ${REGISTRY_ENDPOINT}" >> $LOGS_PATH
 
-echo "------------------"       | tee -a $LOGS_PATH
-echo "ORGANIZATION NAME"        | tee -a $LOGS_PATH
-echo "------------------"       | tee -a $LOGS_PATH
+echo "------------------"       >> $LOGS_PATH
+echo "ORGANIZATION NAME"        >> $LOGS_PATH
+echo "------------------"       >> $LOGS_PATH
 
 ORGANIZATION_NAME=$(echo $SEMAPHORE_ORGANIZATION_URL | sed 's|https://||g' | cut -d'.' -f1)
-echo "ORGANIZATION_NAME ${ORGANIZATION_NAME}" | tee -a $LOGS_PATH
+echo "ORGANIZATION_NAME ${ORGANIZATION_NAME}" >> $LOGS_PATH
 
-echo "------------------"       | tee -a $LOGS_PATH
-echo "PROJECT ID"               | tee -a $LOGS_PATH
-echo "------------------"       | tee -a $LOGS_PATH
+echo "------------------"       >> $LOGS_PATH
+echo "PROJECT ID"               >> $LOGS_PATH
+echo "------------------"       >> $LOGS_PATH
 
-echo "PROJECT_ID ${SEMAPHORE_PROJECT_ID}"  | tee -a $LOGS_PATH
+echo "PROJECT_ID ${SEMAPHORE_PROJECT_ID}"  >> $LOGS_PATH
 
-echo "------------------"       | tee -a $LOGS_PATH
-echo "JOB ID"                   | tee -a $LOGS_PATH
-echo "------------------"       | tee -a $LOGS_PATH
+echo "------------------"       >> $LOGS_PATH
+echo "JOB ID"                   >> $LOGS_PATH
+echo "------------------"       >> $LOGS_PATH
 
-echo "JOB_ID ${SEMAPHORE_JOB_ID}"  | tee -a $LOGS_PATH
+echo "JOB_ID ${SEMAPHORE_JOB_ID}"  >> $LOGS_PATH
 
-echo "------------------"       | tee -a $LOGS_PATH
-echo "JOB NAME"                 | tee -a $LOGS_PATH
-echo "------------------"       | tee -a $LOGS_PATH
+echo "------------------"       >> $LOGS_PATH
+echo "JOB NAME"                 >> $LOGS_PATH
+echo "------------------"       >> $LOGS_PATH
 
 JOB_NAME=$(echo $SEMAPHORE_JOB_NAME | sed 's| |-|g')
-echo "JOB_NAME ${JOB_NAME}" | tee -a $LOGS_PATH
+echo "JOB_NAME ${JOB_NAME}"     >> $LOGS_PATH
 
-echo "------------------"       | tee -a $LOGS_PATH
-echo "BASE IMAGE NAME"               | tee -a $LOGS_PATH
-echo "------------------"       | tee -a $LOGS_PATH
+echo "------------------"       >> $LOGS_PATH
+echo "BASE IMAGE NAME"          >> $LOGS_PATH
+echo "------------------"       >> $LOGS_PATH
 
 BASE_IMAGE_NAME=$(echo "${IMAGE_NAME}" | awk -F'/' '{ print $NF }' | awk -F':' '{ print $1 }')
-echo "BASE_IMAGE_NAME ${BASE_IMAGE_NAME}" | tee -a $LOGS_PATH
+echo "BASE_IMAGE_NAME ${BASE_IMAGE_NAME}" >> $LOGS_PATH
+
+echo ""
+echo "Total push duration: ${PUSH_DURATION} seconds."
+echo "Submitted docker push debug metrics for evaluation."
 
 #
-# Save them in /tmp/docker_debug_logs.txt for internal monitoring.
+# Save logs in /tmp/push_${unix_timestamp}_${job_id}.txt for internal monitoring.
 #
 NAME="$(date +%F)---${SEMAPHORE_WORKFLOW_ID}---${PUSH_DURATION}seconds.txt"
 cat $LOGS_PATH > /tmp/push_$(date +%s)_${JOB_ID}.txt
 
-# wait for mtr process to finish 
+# wait for mtr process to finish
 wait $mtr_pid
 cat $MTR_FILE > /tmp/mtr_$(date +%s)_${JOB_ID}.txt
 #
