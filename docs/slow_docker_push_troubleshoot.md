@@ -18,7 +18,7 @@ Add the following command to your semaphore YAML:
 curl https://raw.githubusercontent.com/renderedtext/snippets/master/install_docker_debug.sh | bash
 ```
 
-You can add to global_job_config:
+A) You can add to global_job_config:
 ```
 global_job_config:
   prologue:
@@ -27,7 +27,7 @@ global_job_config:
       ...
 ```
 
-Or within single block prologue:
+B) Or within single block prologue:
 
 ```
 task:
@@ -37,7 +37,7 @@ task:
       ...
 ```
 
-Or put the installation command at the beggining before others job commands:
+C) Or put the installation command at the beggining before others job commands:
 
 ```
 jobs:
