@@ -51,8 +51,8 @@ jobs:
 
 Replace calls to `docker push <IMAGE>:<TAG>` command with `docker-debug-push <IMAGE>:<TAG>` command.
 
-Once new command is in place we will start receiving metrics about your docker push durations. This will help us troubleshoot the problem.
-
 ### 3. Deliver the wrapped docker push command to your main branches
 
 For most organizations this step means merging the change in CI/CD pipeline to the master branch. This will help us get the graph which depicts more closely how often poor docker push performance occurs on your Semaphore project.
+
+Once new command is in place we will start receiving metrics about your docker push durations. This will help us troubleshoot the problems with poor performance.
