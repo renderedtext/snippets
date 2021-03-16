@@ -53,6 +53,6 @@ Replace calls to `docker push <IMAGE>:<TAG>` command with `docker-debug-push <IM
 
 Once new command is in place we will start receiving metrics about your docker push durations. This will help us troubleshoot the problem.
 
-### 3. Use the semaphore YAML with new docker push command in your main branches
+### 3. Deliver the wrapped docker push command to your main branches
 
 For most organizations this step means merging the change in CI/CD pipeline to the master branch. This will help us get the graph which depicts more closely how often poor docker push performance occurs on your Semaphore project.
