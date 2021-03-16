@@ -3,10 +3,11 @@
 #
 # A wrapper around docker push that collects metrics into a log file.
 #
-# On completion, this scripts pushes the logs to project level artifacts.
-# visit: https://<org>.semaphoreci.com/artifacts/projects/<project-name>
-#
 # Usage:
+#
+#   See https://github.com/renderedtext/snippets/blob/master/docs/slow_docker_push_troubleshoot.md
+#   
+# If you're using this script directly:
 #
 #   Replace "docker push <image-name>" with "bash push.sh <image-name>".
 #
@@ -14,9 +15,9 @@
 #
 #  1. Information about docker layers and their sizes
 #  2. Docker deamon debug logs, includes timing data about accessing remote docker registry
-#  3. Raw docker push output
-#  4. Total duration of the docker push command
-#
+#  3. Total duration of the docker push command
+#  4. Docker registry endpoint
+#  5. Docker image name
 
 IMAGE_NAME=$1
 LOGS_PATH=$(mktemp)
@@ -58,7 +59,7 @@ mtr_pid=$!
 # seconds is a magic bash variable that returns number of seconds since last usage
 SECONDS=0
 
-docker push $IMAGE_NAME | tee -a $LOGS_PATH
+docker push $IMAGE_NAME
 
 DOCKER_EXIT_STATUS=$?
 PUSH_DURATION=$SECONDS
