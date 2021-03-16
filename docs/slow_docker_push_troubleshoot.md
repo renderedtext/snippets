@@ -37,7 +37,7 @@ task:
       ...
 ```
 
-Or put the installation command directly to single job command:
+Or put the installation command at the beggining before others job commands:
 
 ```
 jobs:
