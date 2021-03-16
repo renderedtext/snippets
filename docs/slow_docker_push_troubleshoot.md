@@ -57,6 +57,6 @@ For most organizations this step means merging the change in CI/CD pipeline to t
 
 Once new command is in place we will start receiving metrics about your docker push durations. This will help us troubleshoot the problems with poor performance.
 
-In case you are concerned about introducing the script to your CI/CD pipeline, you can have a look at its [code](https://github.com/renderedtext/snippets/blob/master/push.sh) this same repository. 
+In case you are concerned about introducing the script to your CI/CD pipeline, you can have a look at its [code](https://github.com/renderedtext/snippets/blob/master/push.sh) in this repository. 
 
 For any additional concerns about the script please contact us through Semaphore support.
