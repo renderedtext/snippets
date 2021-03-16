@@ -10,7 +10,9 @@ In order to be aware of the impact of this problem, we have created a wrapper sc
 
 To start reporting slow docker pushes in your CI/CD pipeline please do the following steps:
 
-### 1. Install docker-debug-push command in job environment with following command
+### 1. Install docker-debug-push command in job environment
+
+Add the following command to your semaphore YAML:
 
 ```
 curl https://raw.githubusercontent.com/renderedtext/snippets/master/install_docker_debug.sh | bash
@@ -51,4 +53,6 @@ Replace calls to `docker push <IMAGE>:<TAG>` command with `docker-debug-push <IM
 
 Once new command is in place we will start receiving metrics about your docker push durations. This will help us troubleshoot the problem.
 
+### 3. Use the semaphore YAML with new docker push command in your main branches
 
+For most organizations this step means merging the change in CI/CD pipeline to the master branch. This will help us get the graph which depicts more closely how often poor docker push performance is present in your Semaphore project.
