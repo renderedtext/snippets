@@ -6,7 +6,7 @@ The performance of third-party tools installed in CI/CD environment needs to be 
 
 ## How to install and use docker-debug-push script
 
-In order to be aware of the impact of this problem, we have created a wrapper script which reports slow docker pushes to our internal monitoring system.
+In order to be aware of the docker push performance, we have created a wrapper script which reports docker pushes durations to our internal monitoring system.
 
 To start reporting slow docker pushes in your CI/CD pipeline please do the following steps:
 
