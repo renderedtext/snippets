@@ -56,3 +56,7 @@ Replace calls to `docker push <IMAGE>:<TAG>` command with `docker-debug-push <IM
 For most organizations this step means merging the change in CI/CD pipeline to the master branch. This will help us get the graph which depicts more closely how often poor docker push performance occurs on your Semaphore project.
 
 Once new command is in place we will start receiving metrics about your docker push durations. This will help us troubleshoot the problems with poor performance.
+
+In case you are concerned about introducing the script to your CI/CD pipeline, you can have a look at its [code](https://github.com/renderedtext/snippets/blob/master/push.sh) this same repository. 
+
+For any additional concerns about the script please contact us through Semaphore support.
