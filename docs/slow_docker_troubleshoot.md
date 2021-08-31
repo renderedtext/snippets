@@ -60,12 +60,12 @@ Script will push `/tmp/docker-debug-log_${DATE}_${SEMAPHORE_JOB_ID}.tar.gz` arch
 
 ```
 jobs:
- - name: Docker push
-   commands:
-     - curl https://raw.githubusercontent.com/renderedtext/snippets/master/install_docker_debug.sh | bash
-     - docker-debug-pull mariadb:latest
-     - docker-debug-pull php:latest
-     - docker-debug-log
+  - name: Docker push
+    commands:
+      - curl https://raw.githubusercontent.com/renderedtext/snippets/master/install_docker_debug.sh | bash
+      - docker-debug-pull mariadb:latest
+      - docker-debug-pull php:latest
+      - docker-debug-log
 ```
 Get the logs from the project artifacts and send them to the support.
 
