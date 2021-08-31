@@ -127,18 +127,18 @@ echo "BASE_IMAGE_NAME ${BASE_IMAGE_NAME}" >> $LOGS_PATH
 
 echo ""
 echo "Total push duration: ${PUSH_DURATION} seconds."
-#echo "Submitted docker push debug metrics for evaluation."
+echo "Generating logs..."
 
 #
-# Save logs in /tmp/docker-debug-log/push_${timestamp}_${SEMAPHORE_JOB_ID}.txt for internal monitoring.
+# Save logs in /tmp/docker-debug-logs/push_${timestamp}_${SEMAPHORE_JOB_ID}.txt for internal monitoring.
 #
-if ! [[ -d /tmp/docker-debug-log ]]; then mkdir /tmp/docker-debug-log; fi
+if ! [[ -d /tmp/docker-debug-logs ]]; then mkdir /tmp/docker-debug-logs; fi
 NAME="$(date +%F)---${SEMAPHORE_WORKFLOW_ID}---${PUSH_DURATION}seconds.txt"
-cat $LOGS_PATH > /tmp/docker-debug-log/push_$(date +"%F_%H-%M-%S")_${SEMAPHORE_JOB_ID}.txt
+cat $LOGS_PATH > /tmp/docker-debug-logs/push_$(date +"%F_%H-%M-%S")_${SEMAPHORE_JOB_ID}.txt
 
 # wait for mtr process to finish
 wait $mtr_pid
-cat $MTR_FILE > /tmp/docker-debug-log/mtr_$(date +"%F_%H-%M-%S")_${SEMAPHORE_JOB_ID}.txt
+cat $MTR_FILE > /tmp/docker-debug-logs/mtr_$(date +"%F_%H-%M-%S")_${SEMAPHORE_JOB_ID}.txt
 #
 # Preserve the exit code from docker push.
 #
