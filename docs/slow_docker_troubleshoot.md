@@ -54,9 +54,9 @@ Replace calls to `docker pull <IMAGE>:<TAG>` command with `docker-debug-pull <IM
 
 ### 3. Upload logs as artifacts and sent them to support
 
-Scripts will generate logs for every called push|pull in `/tmp/docker-debug-log` directory and they need to be pushed to artifacts and sent to the support for evaluation.
+Scripts will generate logs for every called push|pull in `/tmp/docker-debug-logs` directory and they need to be pushed to artifacts and sent to the support for evaluation.
 For that you can use `docker-debug-log` scripts at the end of each job for which you gathered docker logs.
-Script will push `/tmp/docker-debug-log_${DATE}_${SEMAPHORE_JOB_ID}.tar.gz` archive to project artifacts.
+Script will push `/tmp/docker-debug-logs_${DATE}_${SEMAPHORE_JOB_ID}.tar.gz` archive to job artifacts.
 
 ```
 jobs:
@@ -67,7 +67,7 @@ jobs:
       - docker-debug-pull php:latest
       - docker-debug-log
 ```
-Get the logs from the project artifacts and send them to the support.
+Get the logs from the job artifacts and send them to the support.
 
 ### 4. Notes
 
