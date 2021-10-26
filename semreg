@@ -1,0 +1,260 @@
+#!/bin/bash
+
+auth="--user ${SEMAPHORE_REGISTRY_USERNAME}:${SEMAPHORE_REGISTRY_PASSWORD}"
+SkipTags=""
+
+semreg::gc() {
+  curl -s $auth https://$SEMAPHORE_REGISTRY_HOST/gc --output /dev/null
+  sleep 3
+
+  local counter=0
+  local status_code
+  echo "Running garbage collector : "
+  while [ $counter -lt 30 ]; do
+    status_code=$(curl -I -s $auth https://$SEMAPHORE_REGISTRY_HOST/v2/ | head -n 1 | cut -d ' ' -f 2)
+    if [[ "$status_code" == "200" ]]; then
+      counter=30
+    else 
+      echo -ne "."
+      counter=$((counter+1))
+      sleep 3
+    fi
+  done
+  if [[ "$status_code" != "200" ]]; then
+    echo "Couldnt access registry, status code : $status_code"
+     exit 0
+  fi
+  echo "Done"
+}
+semreg::list() {
+  local image="$1"
+
+  echo "Image Tag CreatedAt Size" >/tmp/dockerlist
+  for i in $(curl -s $auth --header 'Accept: application/vnd.docker.distribution.manifest.v2+json' -X GET https://$SEMAPHORE_REGISTRY_HOST/v2/_catalog | jq -r '.repositories[]' 2>/dev/null);
+  do
+    if [ -z "$image" ] || [ "$image" == "$i" ]; then
+      tags=$(curl -s $auth --header 'Accept: application/vnd.docker.distribution.manifest.v2+json' -X GET https://$SEMAPHORE_REGISTRY_HOST/v2/$i/tags/list |  jq -r '.tags[]' 2>/dev/null)
+      total_size=0
+      for j in $tags; do
+        size=0
+        create_date=$(date +"%Y-%m-%d_%Hh-%Mm-%Ss" --date=$(curl -s $auth -X GET https://$SEMAPHORE_REGISTRY_HOST/v2/$i/manifests/$j | jq -r '.history[].v1Compatibility'| jq -r '.created' 2>/dev/null | head -n1))
+        for k in $(curl -s $auth --header 'Accept: application/vnd.docker.distribution.manifest.v2+json' https://$SEMAPHORE_REGISTRY_HOST/v2/$i/manifests/$j | grep size | awk '{print $2}' | sed  's|,||g'); do
+          size=$((size+k))
+        done
+        total_size=$((total_size+size))
+        echo "$i $j $create_date $size" >> /tmp/dockerlist
+      done
+      echo "Total: $total_size" >> /tmp/dockerlist
+      echo "" >> /tmp/dockerlist
+    fi
+  done
+  column -t /tmp/dockerlist
+  rm -f /tmp/dockerlist
+}
+semreg::mark() {
+  local image="$1"
+  local tag="$2"
+  SkipTags="$(sed 's/,/\\|/g' <<< $SkipTags)"
+
+  grep -q "$SkipTags" <<< "$tag"
+  if [ $? -eq 0 ] && [ "$SkipTags" != "" ] ; then
+    echo "Skipping $image:$tag"
+  else
+    curl $auth -X DELETE -sI "https://$SEMAPHORE_REGISTRY_HOST/v2/$image/manifests/$(
+    curl $auth -sI \
+      -H "Accept: application/vnd.docker.distribution.manifest.v2+json" \
+      "https://$SEMAPHORE_REGISTRY_HOST/v2/$image/manifests/$tag" \
+      | tr -d '\r' | sed -En 's/^Docker-Content-Digest: (.*)/\1/pi'
+    )" --output /dev/null
+    echo "Marking for delete $image:$tag"
+  fi
+}
+
+semreg::leave_last() {
+  local image="$1"
+  local count=${2:-1}
+
+  if [ "$image" == "all" ]; then image="";fi
+  for i in $(curl -s $auth --header 'Accept: application/vnd.docker.distribution.manifest.v2+json' -X GET https://$SEMAPHORE_REGISTRY_HOST/v2/_catalog | jq -r '.repositories[]' 2>/dev/null);
+  do
+    if [ -z "$image" ] || [ "$image" == "$i" ]; then
+      tags=$(curl -s $auth --header 'Accept: application/vnd.docker.distribution.manifest.v2+json' -X GET https://$SEMAPHORE_REGISTRY_HOST/v2/$i/tags/list |  jq -r '.tags[]' 2>/dev/null)
+      for j in $tags; do
+        create_date=$(date --date=$(curl -s $auth -X GET https://$SEMAPHORE_REGISTRY_HOST/v2/$i/manifests/$j | jq -r '.history[].v1Compatibility'| jq -r '.created' 2>/dev/null| head -n1 ) +"%s")
+        echo "$j $create_date" >> /tmp/to_delete_${i}
+      done
+    fi
+  done
+
+  for i in $(ls /tmp/to_delete_*); do
+    tags=$(cat $i|sort -n -k2|awk '{print $1}')
+    if [ $count -lt 0 ]; then
+      count=$(echo "${count##*[+-]}")
+    fi
+    delete_tags=$(echo "$tags"|head -n -$count)
+    delete_image=${i#"/tmp/to_delete_"}
+    for j in $delete_tags; do
+      semreg::mark $delete_image $j
+    done
+  done
+  semreg::gc
+  rm -f /tmp/to_delete_*
+}
+
+semreg::delete_age() {
+  local image="$1"
+  local age="${2:-1}"
+  age=${2//[!0-9]/}
+  local max_age=$(($(date +%s)  - age*60*60))
+
+  if [ "$image" == "all" ]; then image="";fi
+  for i in $(curl -s $auth --header 'Accept: application/vnd.docker.distribution.manifest.v2+json' -X GET https://$SEMAPHORE_REGISTRY_HOST/v2/_catalog | jq -r '.repositories[]' 2>/dev/null);
+  do
+    if [ -z "$image" ] || [ "$image" == "$i" ]; then
+      tags=$(curl -s $auth --header 'Accept: application/vnd.docker.distribution.manifest.v2+json' -X GET https://$SEMAPHORE_REGISTRY_HOST/v2/$i/tags/list |  jq -r '.tags[]' 2>/dev/null)
+      for j in $tags; do
+        create_date=$(date --date=$(curl -s $auth -X GET https://$SEMAPHORE_REGISTRY_HOST/v2/$i/manifests/$j | jq -r '.history[].v1Compatibility'| jq -r '.created' 2>/dev/null| head -n1 ) +"%s")
+        echo "$j $create_date" >> /tmp/to_delete_${i}
+      done
+    fi
+  done
+  
+  for i in $(ls /tmp/to_delete_*); do
+    delete_tags=$(cat $i|awk '$2 <= '$max_age' {print $1}')
+    delete_image=${i#"/tmp/to_delete_"}
+    for j in $delete_tags; do
+      semreg::mark $delete_image $j
+    done
+  done
+  semreg::gc
+  rm -f /tmp/to_delete_*
+}
+
+semreg::usage() {
+  local json_usage=$(curl -s $auth https://$SEMAPHORE_REGISTRY_HOST/usage)
+
+  if [ "$1" == '--json' ]; then
+      echo $json_usage
+  else
+    regsize=$(echo $json_usage|jq '.usage.size')
+    regused=$(echo $json_usage|jq '.usage.used')
+    regavail=$(echo $json_usage|jq '.usage.avail')
+    output="Size Used Available \n $regsize $regused $regavail"
+    echo -e "$output" | column -t
+  fi
+}
+
+semreg::prune() {
+  local params="$@"
+  arr=( $params )
+  local tags_str="$(awk -F '--skip' '{print $2}' <<< ${params})"
+  SkipTags="$(echo ${tags_str//\'/})"
+  params="$(awk -F '--skip' '{print $1}' <<< ${params} | xargs)"
+  if [ "$params" == "" ] || [ "$params" == 'all' ]; then
+    if [ "$SkipTags" == "" ]; then
+      semreg::delete_age 'all' '24h'
+    else
+      semreg::delete_age 'all' '0h'
+    fi
+  fi
+  if [ "${arr[1]}" == "--one-week" ]; then
+       semreg::delete_age ${arr[0]} '168h'
+  fi
+  if [ "${arr[1]}" == "--retain" ]; then
+       count="${arr[2]}"
+       count=$(echo "${count//[!0-9]/}")
+       count="${count:-1}"
+       if [ "$count" == "" ];then
+         semreg:doc
+         exit 0;
+       fi
+       semreg::leave_last ${arr[0]} $count
+  fi
+  SkipTags=""
+}
+
+
+semreg::doc() {
+  echo -e "
+Usage: semreg [prune|list|usage]
+
+list
+Displays images in the registry 
+
+
+
+Bulk removes unused images from the Semaphore Private Docker Registry.
+
+Usage:
+  semreg prune [all | image-name] [flags…]
+
+Default behaviour:
+Deletes all images older than one day.
+
+Flags:
+  --one-week - Deletes all images older than one week old.
+  --retain N - Deletes all images, leaves the newest N images in the registry.
+  --skip TAGS - Deletes all tags, except the ones specified.(to be implemented)
+ 
+semreg prune all
+Delete all images older than one day.
+
+semreg prune all --one-week
+Delete all images older than one week.
+
+semreg prune all --retain 3
+Delete all images except the last 3.
+
+semreg prune all --retain 1
+Delete all images except the last .
+
+semreg prune <image name>
+Delete all tags from <image name> older than one day.
+
+semreg prune <image name> --one-week
+Delete all tags from <image name> older than one week.
+
+semreg prune <image name> --retain 3
+Delete all tags from <image name> except the last 3.
+
+semreg prune <image name> --retain 1
+Delete all tags from <image name> except the last one."
+}
+
+semreg::err() {
+  echo -e "\n! [$(version::date)]: $@" >&2
+  return 1
+}
+
+semreg() {
+  semreg_command=$1
+  case $semreg_command in
+    list)
+      shift
+      semreg::list $@
+      ;;
+    usage)
+      shift
+      semreg::usage $1
+      ;;
+#    delete-tag)
+#      shift
+#      semreg::mark $1 $2
+#      ;;
+#    leave-last)
+#      shift
+#      semreg::leave_last $1 $2
+#      ;;
+#    delete-age)
+#      shift
+#      semreg::delete_age $1 $2
+#      ;;
+    prune)
+      shift
+      semreg::prune $@
+      ;;
+    *)
+      semreg::doc
+      ;;
+  esac
+}
