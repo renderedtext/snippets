@@ -4,7 +4,7 @@ To use this CLI in your jobs you need to do the following
 ### Step 1 - install the CLI
 Installation :
 
-`wget https://github.com/renderedtext/snippets/blob/master/semreg -O semreg && source semreg`
+`wget https://raw.githubusercontent.com/renderedtext/snippets/master/semreg -O semreg && source semreg`
 
 ### Step 2 - connect to your registry
 The environment variables listed below are used to connect to the registry.
