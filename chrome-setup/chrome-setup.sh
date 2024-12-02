@@ -154,10 +154,9 @@ install() {
   sudo unzip -q -o /tmp/chrome-linux64_${version}.zip -d /opt/chrome-${version}
   sudo unzip -q -o /tmp/chromedriver-linux64_${version}.zip -d /opt/chromedriver-${version}
   sudo ln -fs /opt/chromedriver-${version}/chromedriver-linux64/chromedriver /usr/local/bin/chromedriver
-  sudo rm -f /usr/bin/google-chrome
   make_chrome_wrapper ${version}
-  sudo ln -fs /opt/chrome-${version}/chrome-linux64/chrome /usr/local/bin/chrome
-  sudo ln -fs /opt/chrome-${version}/chrome-linux64/google-chrome /usr/local/bin/google-chrome
+  sudo ln -fs /opt/chrome-${version}/chrome-linux64/chrome /usr/bin/chrome
+  sudo ln -fs /opt/chrome-${version}/chrome-linux64/google-chrome /usr/bin/google-chrome
   google-chrome --version
   chromedriver --version
 }
