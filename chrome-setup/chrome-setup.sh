@@ -3,7 +3,7 @@
 # This script installs the selected version of `chrome` and `chromedriver` in Semaphore's jobs.
 # https://github.com/renderedtext/snippets/blob/master/chrome-setup/README.md
 
-semaphore_versions=("115.0.5790.170" "116.0.5845.96" "117.0.5938.149" "118.0.5993.70" "119.0.6045.105" "120.0.6099.109" "121.0.6167.184" "122.0.6261.128" "123.0.6312.122" "124.0.6367.207" "125.0.6422.78")
+semaphore_versions=("115.0.5790.170" "116.0.5845.96" "117.0.5938.149" "118.0.5993.70" "119.0.6045.105" "120.0.6099.109" "121.0.6167.184" "122.0.6261.128" "123.0.6312.122" "124.0.6367.207" "125.0.6422.78" "131.0.6778.204")
 
 semaphore_base_url="http://packages.semaphoreci.com/chrome"
 
