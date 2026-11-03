@@ -21,4 +21,4 @@ blocks:
           commands:
             - echo "Checking out code..."
     run:
-      when: change_in('ips-S2.txt')
+      when: branch = 'master' and change_in('ips-S2.txt')
